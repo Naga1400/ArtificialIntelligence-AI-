@@ -1,0 +1,58 @@
+import random
+
+def print_board(b):
+    for row in b:
+        print(" | ".join(row))
+        print("-" * 9)
+
+def check_winner(b, p):
+    for i in range(3):
+        if all(b[i][j] == p for j in range(3)) or all(b[j][i] == p for j in range(3)):
+            return True
+    if all(b[i][i] == p for i in range(3)) or all(b[i][2-i] == p for i in range(3)):
+        return True
+    return False
+
+def empty_cells(b):
+    return [(i, j) for i in range(3) for j in range(3) if b[i][j] == " "]
+
+def player_move(b):
+    while True:
+        try:
+            r = int(input("Row (0-2): "))
+            c = int(input("Col (0-2): "))
+            if b[r][c] == " ":
+                return r, c
+            print("Taken! Try again.")
+        except:
+            print("Invalid input.")
+
+def computer_move(b):
+    return random.choice(empty_cells(b))
+
+def play():
+    board = [[" "]*3 for _ in range(3)]
+    print("You = X | Computer = O")
+    while True:
+        print_board(board)
+        r, c = player_move(board)
+        board[r][c] = "X"
+        if check_winner(board, "X"):
+            print_board(board)
+            print(" You win!")
+            break
+        if not empty_cells(board):
+            print_board(board)
+            print("It's a tie!")
+            break
+
+        print("Computer's turn:")
+        r, c = computer_move(board)
+        board[r][c] = "O"
+        if check_winner(board, "O"):
+            print_board(board)
+            print("Computer wins!")
+            break
+
+if __name__ == "__main__":
+    play()
