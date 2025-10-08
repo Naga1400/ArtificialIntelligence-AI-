@@ -1,0 +1,57 @@
+import itertools
+
+def imp(a, b):
+    return (not a) or b
+
+def tf(b):
+    return 'T' if b else 'F'
+
+symbols = ['P', 'Q', 'R']
+rows = []
+models = []
+
+for i, (P, Q, R) in enumerate(itertools.product([False, True], repeat=3), start=1):
+    s1 = imp(Q, P)
+    s2 = imp(P, not Q)
+    s3 = (Q or R)
+    kb_true = s1 and s2 and s3
+    row = {'row': i, 'P': P, 'Q': Q, 'R': R, 'Q->P': s1, 'P->¬Q': s2, 'Q∨R': s3, 'KB': kb_true}
+    rows.append(row)
+    if kb_true:
+        models.append(row)
+
+header = ["#", "P", "Q", "R", "Q->P", "P->¬Q", "Q∨R", "KB"]
+print("{:>2} {:>2} {:>2} {:>2} {:>6} {:>7} {:>4} {:>4}".format(*header))
+for r in rows:
+    print("{:>2} {:>2} {:>2} {:>2} {:>6} {:>7} {:>4} {:>4}".format(
+        r['row'], tf(r['P']), tf(r['Q']), tf(r['R']),
+        tf(r['Q->P']), tf(r['P->¬Q']), tf(r['Q∨R']), tf(r['KB'])
+    ))
+
+print("\nModels of KB (rows where KB is True):")
+if models:
+    for m in models:
+        print(" row {:d}: P={}, Q={}, R={}".format(m['row'], tf(m['P']), tf(m['Q']), tf(m['R'])))
+else:
+    print(" None")
+
+def entails_formula_in_models(models, formula_evaluator):
+    if not models:
+        return True
+    return all(formula_evaluator(m) for m in models)
+
+entails_R = entails_formula_in_models(models, lambda m: m['R'])
+entails_R_imp_P = entails_formula_in_models(models, lambda m: imp(m['R'], m['P']))
+entails_Q_imp_R = entails_formula_in_models(models, lambda m: imp(m['Q'], m['R']))
+
+print("\nEntailment results:")
+print(" (ii) KB ⊨ R ?           ->", "Yes" if entails_R else "No")
+print(" (iii) KB ⊨ (R -> P) ?   ->", "Yes" if entails_R_imp_P else "No")
+print(" (iv) KB ⊨ (Q -> R) ?    ->", "Yes" if entails_Q_imp_R else "No")
+
+print("\nQuery values on each KB model:")
+for m in models:
+    P, Q, R = m['P'], m['Q'], m['R']
+    print(" row {:d}: R={}, (R->P)={}, (Q->R)={}".format(
+        m['row'], tf(R), tf(imp(R, P)), tf(imp(Q, R))
+    ))
