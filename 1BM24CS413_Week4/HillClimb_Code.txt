@@ -1,0 +1,46 @@
+import random
+
+def conflicts(board):
+    """Count attacking pairs of queens."""
+    n = len(board)
+    count = 0
+    for i in range(n):
+        for j in range(i+1, n):
+            if board[i] == board[j] or abs(board[i]-board[j]) == abs(i-j):
+                count += 1
+    return count
+
+def get_best_neighbor(board):
+    """Generate neighbors and return the best one (least conflicts)."""
+    n = len(board)
+    best = board[:]
+    best_conf = conflicts(board)
+
+    for row in range(n):
+        for col in range(n):
+            if col != board[row]:
+                new_board = board[:]
+                new_board[row] = col
+                c = conflicts(new_board)
+                if c < best_conf:
+                    best = new_board
+                    best_conf = c
+    return best, best_conf
+
+def hill_climb(n, max_restarts=100):
+    for _ in range(max_restarts):
+        board = [random.randint(0, n-1) for _ in range(n)] # random start
+        while True:
+            c = conflicts(board)
+            if c == 0:
+                return board
+            neighbor, nc = get_best_neighbor(board)
+            if nc >= c: # no improvement
+                break
+            board = neighbor
+    return None
+
+# Example
+N = 4
+solution = hill_climb(N)
+print("Solution:", solution)
