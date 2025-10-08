@@ -1,0 +1,50 @@
+def unify(x, y, subst=None):
+    if subst is None:
+        subst = {}
+    if subst == "failure":
+        return "failure"
+    elif x == y:
+        return subst
+    elif is_variable(x):
+        return unify_var(x, y, subst)
+    elif is_variable(y):
+        return unify_var(y, x, subst)
+    elif isinstance(x, list) and isinstance(y, list):
+        if len(x) != len(y):
+            return "failure"
+        else:
+            return unify(x[1:], y[1:], unify(x[0], y[0], subst))
+    else:
+        return "failure"
+
+def unify_var(var, x, subst):
+    if var in subst:
+        return unify(subst[var], x, subst)
+    elif x in subst:
+        return unify(var, subst[x], subst)
+    elif occurs_check(var, x, subst):
+        return "failure"
+    else:
+        new_subst = subst.copy()
+        new_subst[var] = x
+        return new_subst
+
+def occurs_check(var, x, subst):
+    if var == x:
+        return True
+    elif isinstance(x, list):
+        return any(occurs_check(var, xi, subst) for xi in x)
+    elif x in subst:
+        return occurs_check(var, subst[x], subst)
+    else:
+        return False
+
+def is_variable(x):
+    return isinstance(x, str) and x[0].islower()  # lowercase = variable
+
+# Example
+expr1 = ["Knows", "John", "x"]
+expr2 = ["Knows", "y", "Mary"]
+
+result = unify(expr1, expr2)
+print("Unifier:", result)
