@@ -1,0 +1,59 @@
+facts = {
+    "American(Robert)",
+    "Enemy(A, America)",
+    "Missile(Missile1)",
+    "Owns(A, Missile1)",
+    "Sells(Robert, Missile1, A)"
+}
+
+rules = [
+    (["Enemy(x, America)"], "Hostile(x)"),
+    (["Missile(x)"], "Weapon(x)"),
+    (["American(x)", "Weapon(y)", "Sells(x, y, z)", "Hostile(z)"], "Criminal(x)")
+]
+
+def substitute(expr, var_map):
+    for var, val in var_map.items():
+        expr = expr.replace(var, val)
+    return expr
+
+def extract_vars(exprs):
+    import re
+    vars_set = set()
+    for expr in exprs:
+        vars_set.update(re.findall(r'\b[a-z]\b', expr))
+    return list(vars_set)
+
+def unify(premises, facts):
+    from itertools import product
+    constants = set()
+    for f in facts:
+        constants.update([c.strip(" ,)") for c in f.split("(")[1].split(",")])
+    vars_in_rule = extract_vars(premises)
+    bindings = []
+    for combo in product(constants, repeat=len(vars_in_rule)):
+        var_map = dict(zip(vars_in_rule, combo))
+        substituted = [substitute(p, var_map) for p in premises]
+        if all(p in facts for p in substituted):
+            bindings.append(var_map)
+    return bindings
+
+def forward_chain(facts, rules):
+    new_facts = set(facts)
+    inferred = True
+    while inferred:
+        inferred = False
+        for premises, conclusion in rules:
+            matches = unify(premises, new_facts)
+            for m in matches:
+                new_fact = substitute(conclusion, m)
+                if new_fact not in new_facts:
+                    new_facts.add(new_fact)
+                    inferred = True
+                    print(f"Inferred: {new_fact}")
+    return new_facts
+
+derived_facts = forward_chain(facts, rules)
+query = "Criminal(Robert)"
+print("\nQuery:", query)
+print("Result:", "PROVED" if query in derived_facts else "NOT PROVED")
