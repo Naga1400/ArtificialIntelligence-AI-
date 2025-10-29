@@ -1,0 +1,49 @@
+import math
+
+# Alpha-Beta Pruning Algorithm
+def alpha_beta(depth, node_index, maximizing_player, values, alpha, beta, max_depth, path, pruned):
+    if depth == max_depth:
+        return values[node_index], [values[node_index]]
+
+    if maximizing_player:
+        best = -math.inf
+        best_path = []
+        for i in range(2):
+            val, child_path = alpha_beta(depth + 1, node_index * 2 + i, False, values, alpha, beta, max_depth, path, pruned)
+            if val > best:
+                best = val
+                best_path = child_path
+            alpha = max(alpha, best)
+            if beta <= alpha:
+                pruned.append(f"Pruned at depth {depth}, node {node_index}")
+                break
+        return best, [best] + best_path
+
+    else:
+        best = math.inf
+        best_path = []
+        for i in range(2):
+            val, child_path = alpha_beta(depth + 1, node_index * 2 + i, True, values, alpha, beta, max_depth, path, pruned)
+            if val < best:
+                best = val
+                best_path = child_path
+            beta = min(beta, best)
+            if beta <= alpha:
+                pruned.append(f"Pruned at depth {depth}, node {node_index}")
+                break
+        return best, [best] + best_path
+
+
+# Leaf node values from your image (left to right)
+values = [10, 9, 14, 18, 5, 4, 50, 3]
+
+path = []
+pruned = []
+
+max_value, final_path = alpha_beta(0, 0, True, values, -math.inf, math.inf, 3, path, pruned)
+
+print("Root Node Value (MAX):", max_value)
+print("Path to reach this value:", list(reversed(final_path)))
+print("Pruned Nodes:")
+for p in pruned:
+    print(" -", p)
