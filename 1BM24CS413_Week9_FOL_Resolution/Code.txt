@@ -1,0 +1,34 @@
+!pip install sympy --quiet
+
+from sympy import symbols, Function, Implies, Not, ForAll, And
+from sympy.logic.boolalg import satisfiable
+
+John, Anil, Harry, Apple, Vegetable, Peanuts, x, y = symbols('John Anil Harry Apple Vegetable Peanuts x y')
+Food = Function('Food')
+Likes = Function('Likes')
+Eats = Function('Eats')
+Killed = Function('Killed')
+Alive = Function('Alive')
+
+KB = [
+    ForAll(x, Implies(Food(x), Likes(John, x))),
+    Food(Apple),
+    Food(Vegetable),
+    ForAll([x, y], Implies(And(Eats(x, y), Not(Killed(x))), Food(y))),
+    Eats(Anil, Peanuts),
+    Alive(Anil),
+    ForAll(x, Implies(Eats(Anil, x), Eats(Harry, x))),
+    ForAll(x, Implies(Alive(x), Not(Killed(x)))),
+    ForAll(x, Implies(Not(Killed(x)), Alive(x)))
+]
+
+query = Likes(John, Peanuts)
+
+statement = And(*KB, Not(query))
+model = satisfiable(statement)
+
+if model == False:
+    print("✅ Proven by Resolution: John likes peanuts.")
+else:
+    print("❌ Not proven. Model found:")
+    print(model)
